@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Airport RMS KPIs & ROI Calculator</title>
+    <meta name="description" content="KPIs and ROI calculator for airport Resource Management System (RMS)">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #121933;
+        --panel-2: #0f1530;
+        --ink: #e9edf7;
+        --ink-dim: #b6c0db;
+        --brand: #4f8cff;
+        --accent: #21d4a3;
+        --warn: #ffcc66;
+        --danger: #ff7a7a;
+        --muted: #8ea0c6;
+        --shadow: 0 10px 25px rgba(0,0,0,0.35);
+        --radius: 14px;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--ink);
+        background: radial-gradient(1200px 800px at 20% -10%, #1a2458 0%, transparent 60%),
+                    radial-gradient(800px 600px at 120% 20%, rgba(79,140,255,0.25) 0%, transparent 60%),
+                    var(--bg);
+        line-height: 1.45;
+      }
+
+      .wrap { max-width: 1200px; margin: 0 auto; padding: 40px 20px 80px; }
+
+      header {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 28px;
+        align-items: center;
+        margin-bottom: 28px;
+      }
+
+      .hero {
+        background: linear-gradient(180deg, rgba(79,140,255,0.10), rgba(79,140,255,0.05));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: var(--radius);
+        padding: 28px;
+        box-shadow: var(--shadow);
+      }
+      .hero h1 { margin: 0 0 10px; font-size: 34px; letter-spacing: -0.02em; }
+      .hero p { margin: 0; color: var(--ink-dim); }
+
+      .badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 999px; font-weight: 600; font-size: 12px;
+        background: rgba(33, 212, 163, 0.12); color: var(--accent);
+        border: 1px solid rgba(33, 212, 163, 0.25);
+        margin-bottom: 12px;
+      }
+
+      .kpi-grid {
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+      }
+      .kpi {
+        background: linear-gradient(180deg, rgba(18,25,51,0.9), rgba(18,25,51,0.6));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: var(--radius);
+        padding: 18px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+      .kpi h3 { margin: 0; font-size: 13px; color: var(--muted); font-weight: 600; }
+      .kpi .val { margin-top: 8px; font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+      .kpi .sub { margin-top: 6px; font-size: 12px; color: var(--ink-dim); }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(18,25,51,0.95), rgba(18,25,51,0.65));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: var(--radius);
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+
+      .calc {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 22px;
+      }
+      .calc .col { display: flex; flex-direction: column; gap: 14px; }
+      .field { display: grid; gap: 8px; }
+      label { font-weight: 600; color: var(--ink-dim); font-size: 13px; }
+      select, input[type="number"] {
+        background: var(--panel-2);
+        color: var(--ink);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 10px;
+        padding: 12px 12px;
+        font-size: 14px;
+        outline: none;
+      }
+      input[type="range"] { width: 100%; }
+
+      .results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+      .result { background: rgba(79,140,255,0.06); border: 1px solid rgba(79,140,255,0.18); border-radius: 12px; padding: 14px; }
+      .result h4 { margin: 0 0 6px; font-size: 12px; color: var(--ink-dim); font-weight: 600; }
+      .result .n { font-size: 20px; font-weight: 700; }
+      .result .hint { margin-top: 6px; font-size: 11px; color: var(--muted); }
+
+      .note { color: var(--ink-dim); font-size: 12px; margin-top: 12px; }
+
+      .footer { margin-top: 26px; font-size: 12px; color: var(--muted); }
+
+      @media (max-width: 1024px) {
+        header { grid-template-columns: 1fr; }
+        .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        .calc { grid-template-columns: 1fr; }
+        .results { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 560px) {
+        .kpi-grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="hero">
+          <div class="badge">Airport RMS — Proven outcomes</div>
+          <h1>Operational clarity that moves your OTP</h1>
+          <p>Our Resource Management System optimizes stands, counters, and baggage carousels in real time. Plan tomorrow in minutes, allocate with confidence, and reduce irregular operations cost through fewer delays.</p>
+        </div>
+        <div class="kpi-grid" id="kpiGrid">
+          <div class="kpi">
+            <h3>Next‑day planning time saved</h3>
+            <div class="val" id="kpiPlanning">—</div>
+            <div class="sub">Automation of allocation runs and constraints</div>
+          </div>
+          <div class="kpi">
+            <h3>OTP improvement</h3>
+            <div class="val" id="kpiOTP">—</div>
+            <div class="sub">More right‑first‑time allocations</div>
+          </div>
+          <div class="kpi">
+            <h3>Daily revenue uplift</h3>
+            <div class="val" id="kpiRevenue">—</div>
+            <div class="sub">Less disruption, more spend, better throughput</div>
+          </div>
+          <div class="kpi">
+            <h3>Energy cost saved</h3>
+            <div class="val" id="kpiEnergy">—</div>
+            <div class="sub">Idle‑off at bridges, counters and carousels</div>
+          </div>
+          <div class="kpi">
+            <h3>Irregular ops cost reduction</h3>
+            <div class="val" id="kpiIrrops">—</div>
+            <div class="sub">Driven by improved OTP</div>
+          </div>
+        </div>
+      </header>
+
+      <section class="panel">
+        <h2 style="margin:0 0 12px;font-size:18px">RMS ROI calculator</h2>
+        <p class="note">Adjust your operation assumptions below. Results update instantly.</p>
+        <div class="calc">
+          <div class="col">
+            <div class="field">
+              <label for="flights">Daily flight count</label>
+              <select id="flights">
+                <option value="100">100</option>
+                <option value="500" selected>500</option>
+                <option value="1000">1000</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="stands">Number of bridge stands</label>
+              <input id="stands" type="number" min="1" step="1" value="24" />
+            </div>
+            <div class="field">
+              <label for="counters">Number of check‑in counters</label>
+              <input id="counters" type="number" min="1" step="1" value="120" />
+            </div>
+            <div class="field">
+              <label for="carousels">Number of baggage carousels</label>
+              <input id="carousels" type="number" min="1" step="1" value="10" />
+            </div>
+          </div>
+          <div class="col">
+            <div class="results">
+              <div class="result">
+                <h4>Next‑day allocation planning duration saving</h4>
+                <div class="n" id="resPlanning">—</div>
+                <div class="hint">Based on automation removing manual steps</div>
+              </div>
+              <div class="result">
+                <h4>Revenue increase from allocation efficiency</h4>
+                <div class="n" id="resRevenue">—</div>
+                <div class="hint">Linked to OTP improvement and better throughput</div>
+              </div>
+              <div class="result">
+                <h4>Energy cost saving per day</h4>
+                <div class="n" id="resEnergy">—</div>
+                <div class="hint">Idle‑off and better matching of resources</div>
+              </div>
+              <div class="result">
+                <h4>On‑time performance (OTP) increase</h4>
+                <div class="n" id="resOTP">—</div>
+                <div class="hint">Weighted by stand/counter/carousel adequacy</div>
+              </div>
+              <div class="result">
+                <h4>Irregular ops cost reduction</h4>
+                <div class="n" id="resIrrops">—</div>
+                <div class="hint">Proportional to OTP improvement</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="footer">Assumptions are configurable in code and intended for directional planning only. For a tailored ROI model, contact our team.</p>
+      </section>
+    </div>
+
+    <script>
+      const config = {
+        currency: { symbol: '$', code: 'USD' },
+        planning: {
+          baseMinutesPerFlight: 5.0, // manual planning per flight
+          dailyOverheadMinutes: { perBridgeStand: 5, perCounter: 2, perCarousel: 5 },
+          automationReductionPct: 0.65 // portion of manual effort removed
+        },
+        otp: {
+          baseImprovementPoints: 3.0, // expected from RMS regardless of sizing
+          maxImprovementPoints: 8.0,
+          minImprovementPoints: 0.5,
+          extraPointsPerEfficiencyUnit: 5.0, // per (efficiencyIndex-1)
+          weights: { stands: 0.5, counters: 0.3, carousels: 0.2 },
+          idealPer100Flights: { stands: 12, counters: 60, carousels: 6 },
+          capEfficiencyAbove: 1.2
+        },
+        revenue: {
+          dollarsPerFlightPerOtpPoint: 50 // blended aero + non-aero per pp
+        },
+        energy: {
+          kWhSavedPerDay: { perBridgeStand: 8, perCounter: 0.6, perCarousel: 5 },
+          costPerKWh: 0.15
+        },
+        irrops: {
+          reductionPctPerOtpPoint: 0.6, // percent reduction per OTP point
+          maxReductionPct: 20
+        }
+      };
+
+      function formatCurrency(value) {
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: config.currency.code, maximumFractionDigits: 0 }).format(value);
+      }
+      function formatHoursMinutes(minutes) {
+        const h = Math.floor(minutes / 60);
+        const m = Math.round(minutes % 60);
+        return `${h}h ${m}m`;
+      }
+
+      function computeEfficiencyIndex(flights, stands, counters, carousels) {
+        const per100 = (n) => (n / flights) * 100;
+        const standsRatio = Math.min(per100(stands) / config.otp.idealPer100Flights.stands, config.otp.capEfficiencyAbove);
+        const countersRatio = Math.min(per100(counters) / config.otp.idealPer100Flights.counters, config.otp.capEfficiencyAbove);
+        const carouselsRatio = Math.min(per100(carousels) / config.otp.idealPer100Flights.carousels, config.otp.capEfficiencyAbove);
+        const w = config.otp.weights;
+        return standsRatio * w.stands + countersRatio * w.counters + carouselsRatio * w.carousels;
+      }
+
+      function computeAll() {
+        const flights = Number(document.getElementById('flights').value);
+        const stands = Math.max(1, Number(document.getElementById('stands').value));
+        const counters = Math.max(1, Number(document.getElementById('counters').value));
+        const carousels = Math.max(1, Number(document.getElementById('carousels').value));
+
+        // Planning time savings
+        const p = config.planning;
+        const manualMinutes = flights * p.baseMinutesPerFlight + (stands * p.dailyOverheadMinutes.perBridgeStand) + (counters * p.dailyOverheadMinutes.perCounter) + (carousels * p.dailyOverheadMinutes.perCarousel);
+        const savedMinutes = manualMinutes * p.automationReductionPct;
+
+        // Efficiency and OTP improvement
+        const eff = computeEfficiencyIndex(flights, stands, counters, carousels);
+        let otpPoints = config.otp.baseImprovementPoints + (eff - 1) * config.otp.extraPointsPerEfficiencyUnit;
+        otpPoints = Math.max(config.otp.minImprovementPoints, Math.min(config.otp.maxImprovementPoints, otpPoints));
+
+        // Revenue uplift
+        const revenue = flights * otpPoints * config.revenue.dollarsPerFlightPerOtpPoint;
+
+        // Energy cost saving
+        const kwh = (stands * config.energy.kWhSavedPerDay.perBridgeStand) + (counters * config.energy.kWhSavedPerDay.perCounter) + (carousels * config.energy.kWhSavedPerDay.perCarousel);
+        const energyCost = kwh * config.energy.costPerKWh;
+
+        // Irregular ops cost reduction (%)
+        const irropsPct = Math.min(config.irrops.maxReductionPct, otpPoints * config.irrops.reductionPctPerOtpPoint);
+
+        // Render KPI tiles
+        document.getElementById('kpiPlanning').textContent = formatHoursMinutes(savedMinutes);
+        document.getElementById('kpiOTP').textContent = `${otpPoints.toFixed(1)} pp`;
+        document.getElementById('kpiRevenue').textContent = formatCurrency(revenue);
+        document.getElementById('kpiEnergy').textContent = formatCurrency(energyCost);
+        document.getElementById('kpiIrrops').textContent = `${irropsPct.toFixed(1)}%`;
+
+        // Render Results
+        document.getElementById('resPlanning').textContent = formatHoursMinutes(savedMinutes);
+        document.getElementById('resRevenue').textContent = `${formatCurrency(revenue)} / day`;
+        document.getElementById('resEnergy').textContent = `${formatCurrency(energyCost)} / day`;
+        document.getElementById('resOTP').textContent = `${otpPoints.toFixed(1)} percentage points`;
+        document.getElementById('resIrrops').textContent = `${irropsPct.toFixed(1)}% reduction`;
+      }
+
+      ['flights','stands','counters','carousels'].forEach(id => {
+        document.addEventListener('input', (e) => {
+          if (e.target && e.target.id === id) computeAll();
+        });
+        document.addEventListener('change', (e) => {
+          if (e.target && e.target.id === id) computeAll();
+        });
+      });
+
+      window.addEventListener('DOMContentLoaded', computeAll);
+    </script>
+  </body>
+  </html>
+
